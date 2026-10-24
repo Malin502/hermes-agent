@@ -53,3 +53,20 @@ def test_git_behaviour_is_unchanged(tmp_path):
     (sub / "AGENTS.md").write_text("pkg rules")
 
     assert [d.name for d in _agents_md_directory_chain(sub)] == ["repo", "pkg"]
+
+
+def test_git_root_does_not_load_ancestor_marker_instructions(tmp_path):
+    root = tmp_path / "repo"
+    root.mkdir()
+    (root / ".git").mkdir()
+    (tmp_path / ".hermes-root").write_text("")
+    (tmp_path / "AGENTS.md").write_text("outside rules")
+    (root / "AGENTS.md").write_text("repo rules")
+
+    assert _agents_md_directory_chain(root) == [root.resolve()]
+
+    from agent.prompt_builder import _agents_md_candidates
+
+    assert [(label, content) for label, _, content in _agents_md_candidates(root)] == [
+        ("AGENTS.md", "repo rules"),
+    ]

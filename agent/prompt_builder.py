@@ -1623,10 +1623,12 @@ def _agents_md_directory_chain(cwd_path: Path) -> list[Path]:
     """
     current = cwd_path.resolve()
     root = _find_git_root(current)
-    if root is not None and root != current and current.is_relative_to(root):
-        parts = current.relative_to(root).parts
-        return [root] + [root.joinpath(*parts[: i + 1]) for i in range(len(parts))]
-    return _agents_md_marker_chain(current)
+    if root is None:
+        return _agents_md_marker_chain(current)
+    if root == current or not current.is_relative_to(root):
+        return [current]
+    parts = current.relative_to(root).parts
+    return [root] + [root.joinpath(*parts[: i + 1]) for i in range(len(parts))]
 
 
 _AGENTS_MD_ROOT_MARKER = ".hermes-root"
